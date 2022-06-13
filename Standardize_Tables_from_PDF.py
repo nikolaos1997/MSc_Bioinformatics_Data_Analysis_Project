@@ -25,6 +25,7 @@ from datetime import date
             
 
 def get_tables(file): #pdf file  
+    pdf_tables = {}
     tables_cam = camelot.read_pdf(file, pages = 'all' , flavor="stream", split_text=True,strip_text="\n", silent=True)
     lista_cam = [] #camelot library
     for t in range(0, tables_cam.n): # Iterate through all the detected tables    
@@ -37,12 +38,14 @@ def get_tables(file): #pdf file
     for t in range(0, len(tables_tab)): # Iterate through all the detected tables    
         tab = pd.DataFrame(tables_tab[t]) # convert into dataframes 
         lista_tab.append(tab)
-    return lista_cam, lista_tab
+    pdf_tables['camelot'] = lista_cam
+    pdf_tables['tabula'] = lista_tab
+    return pdf_tables
 
-
+#iterate through the keys of the dictionary to distinguish tables from camelot and tabula library, and then apply the below function
 # standardize the identified tables into BioC JSON files
-def tab_to_BioC(df_list, file_path, out):
-    basename = Path(file_path).stem
+def tab_to_BioC(df_list, file_path, out): # df_list : the list with the detected tables(in dataframes), file_path : the directory of the PDF file, out : directory to save BioC JSON
+    basename = Path(file_path).stem #get the name of the pdf file from the pathway
     
     date1 = str(date.today())
     documents = []
@@ -71,7 +74,7 @@ def tab_to_BioC(df_list, file_path, out):
                     else: 
                         column_name = nump[1][i]
                     column_dic = {
-                                  "cell_id": F"{num}.{0}.{i}", # location in the table
+                                  "cell_id": F"{num}.{0}.{i}", # location in the table. num : table number, i the row
                                   "cell_text":column_name
                                     }
                     headings.append(column_dic)
@@ -82,7 +85,7 @@ def tab_to_BioC(df_list, file_path, out):
                 for j in range(df.shape[1]):
                     val = df.at[i,j] #get the values
                     content_dic = {
-                                        "cell_id": F"{num}.{j}.{i}", 
+                                        "cell_id": F"{num}.{j}.{i}", # j : the column number
                                         "cell_text": val
                                         }
                     content.append(content_dic)
@@ -98,8 +101,6 @@ def tab_to_BioC(df_list, file_path, out):
             
         tableDict = {
                             "inputfile": basename,
-                            "id": F"{num}",   # i is the sheet number
-                            "infons": {},
                             "passages": [
                                 {
                                     "infons": {
@@ -114,7 +115,7 @@ def tab_to_BioC(df_list, file_path, out):
                                     "iao_name_1": "caption",
                                     "iao_id_1": "IAO:0000326"
                                   },
-                                  "text": [header]
+                                  "text": [header] # table cation....
                                 },
                                 {
                                   "infons": {
