@@ -65,7 +65,9 @@ def tab_to_BioC(df_list, file_path, out): # df_list : the list with the detected
         try:
 
             header = [''.join(str(v) for v in nump[0])] #get potential caption
-        except: header = ['']
+        except: 
+          header = [''.join(str(v) for v in nump[1])]
+        else: header = ['']
         try:
             for i in range(0, len(nump[0])):
                     column_name = nump[1][i] #get column names
