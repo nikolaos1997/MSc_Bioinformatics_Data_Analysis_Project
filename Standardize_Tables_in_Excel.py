@@ -4,9 +4,7 @@ import json
 import re
 from re import search
 from operator import itemgetter
-import glob
-from glob import glob
-import ntpath
+import pathlib
 from pathlib import Path
 import pandas as pd
 from datetime import date 
@@ -17,63 +15,58 @@ from datetime import date
 
  ####################################     Excel Doc to BioC JSON      #####################################                              
 
-def excel_to_BioC(file_path, out): 
+def excel_to_BioC(file_path, out): # file_path : the path to the Excel file, out : the directory to save BioC JSON file
     
-    basename = Path(file_path).stem
+    basename = Path(file_path).stem # get the name of the file from the directory
     
 
     df = pd.read_excel(file_path, sheet_name = None) # Read excel document
 
-    headings = []
-    content = []
-
-    date1 = str(date.today())
+    date1 = str(date.today()) #date of standardization
     documents = []
     bioc_format = {
                 "source": "Auto-CORPus (supplementary tables)",
                 "date": f'{date1}',
                 "key": "autocorpus_supp.key",
-                "infons": {},
                 "documents": documents
                    }
 
-    for i,j in enumerate(df.keys()): # iterate through the dictionary of the various tables
-        sheet = df[j]
-        nump = df[j].to_numpy()
-        headings = []
-        content = []
+    for i,j in enumerate(df.keys()): # iterate through the dictionary of the various tables concerning the various sheets
+        sheet = df[j] 
+        nump = df[j].to_numpy() # exploit the location of the elements as numpy list
+        headings = []#store headings
+        content = []#store the values for each heading
 
-        s = 1
-        if len(nump) != 0:
+        if len(nump) != 0: #sometimes, sheets might be empty
 
-            for i in range(0, len(nump[0])):
-                column_name = nump[0][i] #get headers
+            for k in range(0, len(nump[0])): #iterate through columns of the table
+                column_name = nump[0][k] #get headers
          
                 column_dic = {
-                              "cell_id": F"{s}.{0}.{i}",
-                              "cell_text":column_name
+                              "cell_id": F"{i}.{0}.{k}", # get heading location
+                              "cell_text":column_name # get heading name
                                 }
                 headings.append(column_dic)
 
 
                 for l in range(1, len(nump)):
 
-                    val = nump[l][i]
+                    val = nump[l][k]
                     content_dic = {
-                                    "cell_id": F"{s}.{l}.{i}",
-                                    "cell_text": val
+                                    "cell_id": F"{i}.{l}.{k}", #get values location in the table ## i is the sheet number, l is the row number, k is the column number
+                                    "cell_text": val #the value
                                     }
                     content.append(content_dic)
 
             tableDict = {
                             "inputfile": file_path,
-                            "id": F"{l}",   # l is the sheet number
+                            "id": F"{l}",   
                             "passages": [
                                 {
                                     "infons": {
                                         "section_title_1": "table_title_supp",
                                         "iao_name_1": "document title",
-                                        "iao_id_1": "IAO:0000326"
+                                        "iao_id_1": "IAO:0000326" # supplmentary information Informaiton Artifact Ontology ID
                                     },
                                     "text": [F"Table {i}", F'{j}']} ## get table number and name of sheet
                                 ,{
@@ -82,7 +75,7 @@ def excel_to_BioC(file_path, out):
                                     "iao_name_1": "caption",
                                     "iao_id_1": "IAO:0000326"
                                   },
-                                  "text": [sheet.columns[0]]
+                                  "text": [sheet.columns[0]] #table caption
                                 },
                                 {
                                   "offset": '',
