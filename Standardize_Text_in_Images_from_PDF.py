@@ -14,6 +14,7 @@ import ntpath
 from pathlib import Path
 import pandas as pd
 from datetime import date 
+from textblob import TextBlob
 
 
 
@@ -104,3 +105,58 @@ def image_to_BioC(image_dic, file_path, out): #image_dic : the dictionary with t
         documents.append(tableDict)
     with open(out + f'\{basename}'+ "_supp_figures.json", "w+", encoding='utf-8') as outfile:
         json.dump(bioc_format, outfile, ensure_ascii=False, indent=4)
+      
+      
+      
+      
+                ######  get the spelling accuracy of the extracted words from pytesseract using TextBlob       ##############
+       
+       
+def accur(lista): # lista is being used in the iteration of the files in the next step
+  per_lista = []
+  for i in lista:
+      for j in i:
+          txt = j
+          textBlb = TextBlob(txt)
+          textCorrected = textBlb.correct()
+          l1 = txt.split()
+          l2 = textCorrected.split()
+          good = 0
+          bad = 0
+          for i in range(0, len(l1)):
+              if l1[i] != l2[i]:
+                  bad += 1
+              else:
+                  good += 1
+          perc = (good/ (good + bad)) *100
+          per_lista.append(perc)
+  return per_lista
+
+## path to the BioC JSON folder for the extracted text from the images 
+f = os.chdir(path)
+dic = {}
+
+for file in os.listdir(f):
+    j = open(file, 'rb')
+    jo = json.load(j)
+    lista = []
+    page = []
+    for i in jo['documents']:
+        for j in i['passages']:
+            try:
+                lista.append(j['data_section'])
+            except: continue
+    for i in tqdm(jo['documents']):
+        for j in i['passages']:
+            try:
+                if j['text'] != "":
+                    for k in j['text']:
+                        page.append(k)
+            except: continue
+
+    file_ = file[0:15]
+
+    for i,j in enumerate(page):
+        if j == '':
+            del page[i]
+    dic[file_] = accur(lista)
