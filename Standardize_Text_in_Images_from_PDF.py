@@ -27,7 +27,7 @@ from datetime import date
 pytesseract.pytesseract.tesseract_cmd = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe" # have this line of code all the time before using pytesseract!!!
  
 def image_to_text(pdf):
-    pdf_file = fitz.open(pdf)
+    pdf_file = fitz.open(pdf) #access PDF through PyMuPDF
 
     image_dic = {} # initialize a dictionary to place the text from each image
 
