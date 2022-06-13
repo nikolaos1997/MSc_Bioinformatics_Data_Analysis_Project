@@ -42,13 +42,12 @@ def image_to_text(pdf):
             base_image = pdf_file.extract_image(xref) # extract the image bytes from each image
             image_bytes = base_image["image"]
 
-            # load it to PIL\n",
             image = Image.open(io.BytesIO(image_bytes)) #load the bytes to Python Imaging Library (PIL)
             nparr = np.frombuffer(image_bytes, np.uint8) # create arrays of the bytes using buffer storage
 
             image1 = cv2.imdecode(nparr, flags = 2) # decode the array with OpenCV
-            color = cv2.cvtColor(image1, cv2.COLOR_GRAY2RGB)
-            gray = cv2.cvtColor(color, cv2.COLOR_BGR2GRAY) # convert to grayscale
+           # color = cv2.cvtColor(image1, cv2.COLOR_GRAY2RGB)
+            #gray = cv2.cvtColor(color, cv2.COLOR_BGR2GRAY) 
             thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1] # apply threshold to distinguish pixels as background and foreground
             string = pytesseract.image_to_string(thresh) # Use Pytesseract model to convert image to string
             string = string.replace("\n"," ") 
@@ -58,7 +57,7 @@ def image_to_text(pdf):
                 image_dic[key_img] = string
     return image_dic
 
-def image_to_BioC(image_dic, file_path, out):
+def image_to_BioC(image_dic, file_path, out): #image_dic : the dictionary with the extracted text for each image, file_path : the pathway to PDF, out : the pathway to save BioC JSON
     basename = Path(file_path).stem #get just the name of the file from the directory 
     
     date1 = str(date.today())
@@ -71,12 +70,11 @@ def image_to_BioC(image_dic, file_path, out):
                 "documents": documents
                    }
 
-    for i in image_dic.keys():
+    for i in image_dic.keys(): # iterate through the extracted text from each detected image 
         content = [image_dic[i]]
 
         tableDict = {
                         "inputfile": file,
-                        "infons": {},
                         "passages": [
                             {
                                 "infons": {
