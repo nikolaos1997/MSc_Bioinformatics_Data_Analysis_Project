@@ -1,2 +1,2 @@
 # MSc_Bioinformatics_Data_Analysis_Project
-djhfdj
+The presented standardization pipelines aim to extend Auto-CORPus algorithm
