@@ -26,13 +26,13 @@ def pdf_to_html(file_path):
     for num, page in enumerate(doc):  # iterate the document pages
         #page.read_contents()
         if page.rect[0] - page.rect[2] < page.rect[1] - page.rect[3]: ## tables in Landscape format conversion is problematic
-            table = tabula.read_pdf(file_path, pages = num + 1, encoding ='latin-1')
+            table = tabula.read_pdf(file_path, pages = num + 1, encoding ='latin-1') # use tabula for table detection since it was the most accurate from the standardization of the tables in PDFs.
             try: # error when page has image - table[0] out of range!!
-                if len(table[0]) > 3: 
+                if len(table[0]) > 3: #empiricaly ....
                     table[0] = table[0].dropna(axis = 0, how = 'all')
                     text = table[0].to_html().encode("utf8")
                 else: text = page.get_svg_image().encode("utf8") ## page with table as image to be further analized....
-            except: text = page.get_svg_image().encode("utf8")  ## page as image to be further analized with tess..
+            except: text = page.get_svg_image().encode("utf8")  ## page as image to be further analized with the modules of AutoCORPus
         else:
             text = page.get_text('html', clip = 'rect-like').encode("utf8")
         out.write(text) 
@@ -87,13 +87,13 @@ def convert_format(file_path): #detect the type of the file and apply conversion
     if Path(basename).suffix == '.pdf':
         pdf_to_html(file_path)
 
-    elif Path(basename).suffix == '.xlsx': 
+    elif Path(basename).suffix == '.xlsx' or Path(basename).suffix == '.xls': 
         excel_to_html(file_path)
 
-    elif Path(basename).suffix == '.docx':
+    elif Path(basename).suffix == '.docx' or Path(basename).suffix == '.doc':
         docx_to_html(file_path)
 
-    elif Path(basename).suffix == '.ppt' or Path(basename).suffix == '.pptx':
+    elif Path(basename).suffix == '.pptx' or Path(basename).suffix == '.ppt':
         ppt_to_html(file_path)
 
         
